@@ -22,3 +22,56 @@ var beatles=[{
   profilePic:"http://cp91279.biography.com/BIO_Bio-Shorts_0_Ringo-Starr_SF_HD_768x432-16x9.jpg"
 }
 ]
+
+/*
+1.Crea la ruta "/api" que muestre el arreglo completo (done)
+
+2.Ahora en la ruta "/api/John%20Lennon" deberiamos ver solo el objeto de John (done)
+
+3.Haz lo mismo con los otros beatles. Podemos hacer esto sin repetirnos en una misma ruta? (done)
+
+4. Si el usuario no entra un Beatle valido tiene que darle un error diciendo que la página no se encontro */
+
+http.createServer((req, res) =>{
+  
+  if(req.url === '/api'){
+    res.writeHead(200, {'Content-Type': 'application/json'})
+    return res.end(JSON.stringify(beatles))
+  }
+  if(req.url.slice(0,5) ==='/api/'){
+    const search = req.url.split('/').pop();    // [John%20Lennon]
+    const beatle = beatles.find(b => b.name.replace(' ', '%20') === search);
+    
+    if(beatle){
+      res.writeHead(200, {'Content-Type': 'application/json'})
+      return res.end(JSON.stringify(beatle))
+    }else{
+
+      res.writeHead(404, {'Content-Type': 'text/plain'})
+      return res.end('No se encontro el beatle')
+    }
+  }
+  
+  //Punto 2 TemplateHtml
+  if(req.url.length > 1){
+    const search = req.url.split('/').pop(); 
+    const beatle = beatles.find(b => b.name.replace(' ', '%20') === search)
+
+    if(beatle){
+      fs.readFile('./beatle.html', 'utf-8', (err, data)=>{
+        if(err){
+          res.writeHead(404, {'Content-Type': 'text/plain'})
+          return res.end('No se encontro el beatle')
+        }
+        else{
+          data = data.replace('{name}', beatle.name);
+          data = data.replace('{birthdate}', beatle.birthdate);
+          data = data.replace('{profilePic}', beatle.profilePic);
+          res.writeHead(200, {'Content-Type': 'text/html'})
+          return res.end(data)
+        }
+      })
+    }
+  }
+
+}).listen(3000)
